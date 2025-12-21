@@ -53,20 +53,25 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         ctx.fillStyle = '#22c55e'; // Green 500
         ctx.fill();
 
-        // Draw Items
-        gameState.items.forEach((item: Item) => {
-            if (item.type === 'present') {
-                ctx.fillStyle = '#eab308'; // Yellow 500 (Gold)
-                // Draw Gift Box
-                ctx.fillRect(item.position.x, item.position.y, entitySize, entitySize);
-                // Ribbon
-                ctx.fillStyle = '#ef4444'; // Red
-                ctx.fillRect(item.position.x + entitySize / 2 - 5, item.position.y, 10, entitySize);
-                ctx.fillRect(item.position.x, item.position.y + entitySize / 2 - 5, entitySize, 10);
-            } else {
-                ctx.fillStyle = '#9ca3af'; // Gray 400 (Rod)
-                ctx.fillRect(item.position.x + 15, item.position.y, 10, entitySize);
-            }
+        // Draw Items - Draw Presents first, then Rods to keep Rods in foreground
+        const presents = gameState.items.filter(i => i.type === 'present');
+        const rods = gameState.items.filter(i => i.type === 'rod');
+
+        // Draw Presents
+        presents.forEach((item: Item) => {
+            ctx.fillStyle = '#eab308'; // Yellow 500 (Gold)
+            // Draw Gift Box
+            ctx.fillRect(item.position.x, item.position.y, entitySize, entitySize);
+            // Ribbon
+            ctx.fillStyle = '#ef4444'; // Red
+            ctx.fillRect(item.position.x + entitySize / 2 - 5, item.position.y, 10, entitySize);
+            ctx.fillRect(item.position.x, item.position.y + entitySize / 2 - 5, entitySize, 10);
+        });
+
+        // Draw Rods
+        rods.forEach((item: Item) => {
+            ctx.fillStyle = '#9ca3af'; // Gray 400 (Rod)
+            ctx.fillRect(item.position.x + 15, item.position.y, 10, entitySize);
         });
 
     }, [gameState, width, height, santaY, elfY, entitySize]);
