@@ -62,10 +62,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
             };
         };
 
-        processImage('/assets/santa.png', santa);
-        processImage('/assets/elf.png', elf);
-        processImage('/assets/present.png', present);
-        processImage('/assets/rod.png', rod);
+        processImage('/christmas-game/assets/santa.png', santa);
+        processImage('/christmas-game/assets/elf.png', elf);
+        processImage('/christmas-game/assets/present.png', present);
+        processImage('/christmas-game/assets/rod.png', rod);
     }, []);
 
     useEffect(() => {
