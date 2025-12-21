@@ -180,7 +180,7 @@ export const useGameState = () => {
                         playSound('penalty');
                     } else if (item.type === 'grinch') {
                         newLives -= 1;
-                        playSound('penalty'); // Or specific sound
+                        playSound('grinch');
                     }
                     return false; // Remove item
                 }

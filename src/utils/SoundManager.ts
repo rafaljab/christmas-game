@@ -2,7 +2,7 @@
 
 const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
 
-export type SoundType = 'score' | 'penalty' | 'gameOver';
+export type SoundType = 'score' | 'penalty' | 'gameOver' | 'grinch';
 
 export const initAudio = () => {
     if (audioCtx.state === 'suspended') {
@@ -55,6 +55,21 @@ export const playSound = (type: SoundType) => {
             gainNode.gain.linearRampToValueAtTime(0.01, now + 1.5);
             oscillator.start(now);
             oscillator.stop(now + 1.5);
+            break;
+
+        case 'grinch':
+            // Discordant "Laugh" / Glitch (Sawtooth + Square)
+            oscillator.type = 'square';
+            // Play a tritone interval (Devil's interval) lightly
+            oscillator.frequency.setValueAtTime(300, now);
+            oscillator.frequency.linearRampToValueAtTime(424, now + 0.1); // approx tritone
+            oscillator.frequency.linearRampToValueAtTime(150, now + 0.3); // drop down
+
+            gainNode.gain.setValueAtTime(0.4, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+            oscillator.start(now);
+            oscillator.stop(now + 0.4);
             break;
     }
 };
