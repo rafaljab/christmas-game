@@ -94,22 +94,28 @@ export const useGameState = () => {
             // 0. Update Timer
             const newTimeAlive = prevState.timeAlive + deltaTime;
 
-            // Calculate difficulty multiplier based on Time Alive
-            // Starts at 1.0, adds 0.1 for every 10 seconds of survival
+            // Calculate Difficulty Multipliers
             const secondsAlive = newTimeAlive / 1000;
-            const difficulty = 1 + (secondsAlive / 10) * 0.1;
+
+            // Spawn Difficulty: Scales indefinitely (linear increase every 10s)
+            const spawnDifficulty = 1 + (secondsAlive / 10) * 0.1;
+
+            // Movement Difficulty: Caps at 60 seconds (1 minute)
+            // This prevents Santa from moving impossibly fast
+            const cappedSeconds = Math.min(secondsAlive, 60);
+            const movementDifficulty = 1 + (cappedSeconds / 10) * 0.1;
 
             // 1. Move Santa
-            // Apply difficulty to speed
-            let newSantaX = prevState.santaPosition + Math.sin(Date.now() / 1000) * (CONSTANTS.SANTA_SPEED * difficulty) * deltaTime;
+            // Apply MOVEMENT difficulty to speed
+            let newSantaX = prevState.santaPosition + Math.sin(Date.now() / 1000) * (CONSTANTS.SANTA_SPEED * movementDifficulty) * deltaTime;
             // Clamp Santa
             newSantaX = Math.max(0, Math.min(CONSTANTS.CANVAS_WIDTH - CONSTANTS.ENTITY_SIZE, newSantaX));
 
             // Simple bounce movement logic
             // Use timeAlive instead of Date.now() to avoid massive phase jumps when difficulty changes
             const time = newTimeAlive;
-            // Scale time by difficulty to make oscillation faster
-            const timeScale = 0.002 * difficulty;
+            // Scale time by MOVEMENT difficulty to make oscillation faster
+            const timeScale = 0.002 * movementDifficulty;
             const santaPos = (Math.sin(time * timeScale) + 1) / 2 * (CONSTANTS.CANVAS_WIDTH - CONSTANTS.ENTITY_SIZE);
 
 
@@ -130,20 +136,22 @@ export const useGameState = () => {
             // Base Rod Probability is 30%. Increases by 5% for every 1.0 difficulty increase (every 10s)
             // Cap at 60% rods maximum.
             const baseRodProb = 0.3;
-            const difficultyFactor = (difficulty - 1) * 0.5;
+            // Use SPAWN difficulty for item types
+            const difficultyFactor = (spawnDifficulty - 1) * 0.5;
             const rodProbability = Math.min(0.6, baseRodProb + difficultyFactor);
 
             // Grinch Probability
-            // Starts very low (2%). Increases slightly with difficulty. Capped at 5%.
-            const grinchProbability = Math.min(0.05, 0.02 + (difficulty - 1) * 0.01);
+            // Starts at 2%. scales up to 20% max.
+            // Increases significantly with difficulty to replace Coals.
+            const grinchProbability = Math.min(0.20, 0.02 + (spawnDifficulty - 1) * 0.05);
 
             // Spawn rate increases with difficulty
-            if (Math.random() < CONSTANTS.ITEM_DROP_RATE * difficulty) {
+            if (Math.random() < CONSTANTS.ITEM_DROP_RATE * spawnDifficulty) {
                 const rand = Math.random();
                 let type: Item['type'] = 'present';
 
                 if (rand < grinchProbability) {
-                    type = 'grinch';
+                    type = 'grinch'; // High risk!
                 } else if (rand < grinchProbability + rodProbability) {
                     type = 'rod';
                 }
@@ -162,7 +170,7 @@ export const useGameState = () => {
 
             const updatedItems = newItems.filter((item) => {
                 // Item fall speed increases with difficulty
-                item.position.y += CONSTANTS.ITEM_SPEED * difficulty * deltaTime;
+                item.position.y += CONSTANTS.ITEM_SPEED * spawnDifficulty * deltaTime;
 
                 // Collision with Elf
                 const hitElf =

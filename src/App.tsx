@@ -62,11 +62,13 @@ function App() {
 
       {/* UI Overlay */}
       <div className="absolute top-8 left-8 flex flex-col gap-2 items-start">
-        <div className="glass-panel px-6 py-3 rounded-2xl border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)] backdrop-blur-md bg-white/5">
-          <span className="text-slate-300 text-lg uppercase tracking-widest font-bold mr-2">Score</span>
-          <span className={`text-3xl font-black drop-shadow-lg ${gameState.score >= 0 ? "text-green-400" : "text-red-400"}`}>{gameState.score}</span>
+        {/* Score Display */}
+        <div className="glass-panel px-4 py-2 rounded-xl border border-white/5 shadow-md backdrop-blur-sm bg-black/20 flex items-center">
+          <span className="text-slate-400 text-sm uppercase tracking-wider font-bold mr-2">Score</span>
+          <span className={`text-xl font-black drop-shadow-md ${gameState.score >= 0 ? "text-green-400" : "text-red-400"}`}>{gameState.score}</span>
         </div>
-        <div className="glass-panel px-4 py-2 rounded-xl border border-white/5 shadow-md backdrop-blur-sm bg-black/20">
+        {/* Time Display */}
+        <div className="glass-panel px-4 py-2 rounded-xl border border-white/5 shadow-md backdrop-blur-sm bg-black/20 flex items-center">
           <span className="text-slate-400 text-sm uppercase tracking-wider font-bold mr-2">Time</span>
           <span className="text-xl font-mono text-cyan-300">{formatTime(gameState.timeAlive)}</span>
         </div>
@@ -111,6 +113,22 @@ function App() {
                   Start Game 🎁
                 </span>
               </button>
+
+              {/* Legend */}
+              <div className="mt-12 flex gap-8 text-center bg-black/40 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
+                <div className="flex flex-col items-center gap-2 group cursor-help transition-transform hover:scale-110">
+                  <img src="/christmas-game/assets/present.png" alt="Present" className="w-12 h-12 image-pixelated drop-shadow-md" />
+                  <span className="text-green-400 font-bold text-sm text-shadow">+10 Pts</span>
+                </div>
+                <div className="flex flex-col items-center gap-2 group cursor-help transition-transform hover:scale-110">
+                  <img src="/christmas-game/assets/rod.png" alt="Coal" className="w-12 h-12 image-pixelated drop-shadow-md" />
+                  <span className="text-slate-400 font-bold text-sm text-shadow">-10 Pts</span>
+                </div>
+                <div className="flex flex-col items-center gap-2 group cursor-help transition-transform hover:scale-110">
+                  <img src="/christmas-game/assets/grinch.png" alt="Grinch" className="w-12 h-12 image-pixelated drop-shadow-lg animate-pulse" />
+                  <span className="text-red-500 font-bold text-sm text-shadow">-1 Life!</span>
+                </div>
+              </div>
             </div>
           )}
 
@@ -142,7 +160,6 @@ function App() {
 
       <div className="mt-4 text-slate-300 text-base font-medium tracking-wide bg-slate-800/50 px-6 py-2 rounded-full backdrop-blur-sm border border-white/10 shadow-lg">
         Use <kbd className="mx-1 px-2 py-0.5 bg-slate-700 text-white rounded text-sm font-sans font-bold shadow-sm border-b-2 border-slate-900">←</kbd> <kbd className="mx-1 px-2 py-0.5 bg-slate-700 text-white rounded text-sm font-sans font-bold shadow-sm border-b-2 border-slate-900">→</kbd> to guide the Elf.
-        <span className="ml-4 text-amber-400 font-bold">Catch 🎁 Avoid ⚫</span>
       </div>
 
       <div className="mt-4 text-slate-500 text-sm font-light tracking-wider opacity-75 hover:opacity-100 transition-opacity select-none">
