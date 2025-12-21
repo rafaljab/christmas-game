@@ -1,9 +1,10 @@
+import { useState, useEffect } from 'react';
 import { useGameLoop } from './hooks/useGameLoop';
 import { useGameState } from './hooks/useGameState';
 import { GameCanvas } from './components/GameCanvas';
 
 function App() {
-  const { gameState, update, CONSTANTS } = useGameState();
+  const { gameState, update, startGame, CONSTANTS } = useGameState();
 
   useGameLoop((deltaTime: number) => {
     update(deltaTime);
@@ -17,8 +18,48 @@ function App() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const [showMobileWarning, setShowMobileWarning] = useState(false);
+
+  useEffect(() => {
+    const checkDevice = () => {
+      // Check if screen is too narrow (canvas is 800px) or if it's likely a mobile device
+      const isNarrow = window.innerWidth < 1024;
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      // Show warning if narrow or touch (likely mobile/tablet)
+      setShowMobileWarning(isNarrow || isTouch);
+    };
+
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
+
   return (
     <div className="w-full min-h-screen bg-slate-900 bg-gradient-to-br from-slate-900 via-purple-950 to-black flex flex-col items-center justify-center font-sans text-center selection:bg-pink-500 selection:text-white py-4">
+      {/* Mobile/Tablet Warning Modal */}
+      {showMobileWarning && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-md bg-slate-800 border border-white/10 rounded-2xl p-8 shadow-2xl text-center">
+            <div className="text-6xl mb-6">💻 + ⌨️</div>
+            <h2 className="text-3xl font-black text-amber-400 mb-4 drop-shadow-md">Desktop Required</h2>
+            <p className="text-slate-300 text-lg leading-relaxed mb-6">
+              <strong className="text-white block mb-2">Welcome to Christmas Catch! 🎄</strong>
+              This game requires a <span className="text-cyan-300 font-bold">Physical Keyboard</span> (Arrow Keys) and a larger screen for the best experience.
+            </p>
+            <p className="text-slate-400 text-sm mb-8 bg-black/20 p-3 rounded-lg">
+              Please open this page on a Desktop or Laptop computer.<br />
+              (Recommended Width: 1024px+)
+            </p>
+            <button
+              onClick={() => setShowMobileWarning(false)}
+              className="text-slate-500 hover:text-white text-xs underline transition-colors"
+            >
+              I understand, let me try anyway (Experience may be poor)
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* UI Overlay */}
       <div className="absolute top-8 left-8 flex flex-col gap-2 items-start">
         <div className="glass-panel px-6 py-3 rounded-2xl border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)] backdrop-blur-md bg-white/5">
@@ -49,7 +90,22 @@ function App() {
             entitySize={CONSTANTS.ENTITY_SIZE}
           />
 
-          {/* Start / Game Over Overlay */}
+          {/* Start Game Screen */}
+          {!gameState.gameStarted && !gameState.gameOver && (
+            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center backdrop-blur-sm z-50 animate-fade-in">
+              <h2 className="text-6xl font-black text-white mb-6 drop-shadow-lg tracking-tight">Ready? 🎅</h2>
+              <button
+                onClick={startGame}
+                className="group relative px-10 py-5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-full text-2xl transition-all shadow-[0_4px_0_rgb(185,28,28)] hover:shadow-[0_2px_0_rgb(185,28,28)] active:shadow-none translate-y-0 hover:translate-y-[2px] active:translate-y-[4px] animate-bounce-slow"
+              >
+                <span className="flex items-center gap-3">
+                  Start Game 🎁
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* Game Over Overlay */}
           {gameState.gameOver && (
             <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm z-50 animate-fade-in">
               <h2 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-red-600 mb-2 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] tracking-tight">GAME OVER</h2>
@@ -60,7 +116,7 @@ function App() {
                 Time Alive: <span className="font-mono text-cyan-300">{formatTime(gameState.timeAlive)}</span>
               </div>
               <button
-                onClick={() => window.location.reload()}
+                onClick={startGame}
                 className="group relative px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-full text-xl transition-all shadow-[0_4px_0_rgb(21,128,61)] hover:shadow-[0_2px_0_rgb(21,128,61)] active:shadow-none translate-y-0 hover:translate-y-[2px] active:translate-y-[4px]"
               >
                 <span className="flex items-center gap-2">

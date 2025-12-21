@@ -19,6 +19,7 @@ export interface GameState {
     score: number;
     gameOver: boolean;
     timeAlive: number;
+    gameStarted: boolean;
 }
 
 const CONSTANTS = {
@@ -41,6 +42,7 @@ export const useGameState = () => {
         score: 0,
         gameOver: false,
         timeAlive: 0,
+        gameStarted: false,
     });
 
     const keysPressed = useRef<{ [key: string]: boolean }>({});
@@ -68,8 +70,22 @@ export const useGameState = () => {
         };
     }, []);
 
+    const startGame = useCallback(() => {
+        setGameState(prev => ({
+            ...prev,
+            gameStarted: true,
+            gameOver: false,
+            score: 0,
+            timeAlive: 0,
+            items: [],
+            santaPosition: CONSTANTS.CANVAS_WIDTH / 2,
+            elfPosition: CONSTANTS.CANVAS_WIDTH / 2,
+        }));
+        initAudio(); // Ensure audio context is ready
+    }, []);
+
     const update = useCallback((deltaTime: number) => {
-        if (gameState.gameOver) return;
+        if (gameState.gameOver || !gameState.gameStarted) return;
 
         setGameState((prevState) => {
             // 0. Update Timer
@@ -166,13 +182,15 @@ export const useGameState = () => {
                 score: newScore,
                 gameOver: isGameOver,
                 timeAlive: newTimeAlive,
+                gameStarted: true,
             };
         });
-    }, [gameState.gameOver]);
+    }, [gameState.gameOver, gameState.gameStarted]);
 
     return {
         gameState,
         update,
+        startGame,
         CONSTANTS
     };
 };
