@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+# 🎄 Christmas Catch
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/rafaljab/christmas-game/deploy.yml?label=Build%20%26%20Deploy&style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 
-Currently, two official plugins are available:
+Welcome to **Christmas Catch**, a festive experiment in **AI-Native Development**. This project demonstrates how modern tooling and generative AI can be combined to "vibe code" a production-ready web application in record time.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![Christmas Catch Banner](https://placehold.co/600x400/1e293b/ef4444?text=Christmas+Catch)
 
-## React Compiler
+## 🌟 Live Demo
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+👉 **[Play the Game Here](https://rafaljab.github.io/christmas-game/)**
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🎮 Gameplay
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+* **Objective:** You are Santa! Move left and right to catch the falling **Presents**.
+* **The Threat:** Avoid the **Grinch**! Touching him will cost you a life.
+* **Mechanics:**
+    * Start with **3 Lives**.
+    * **Dynamic Difficulty:** The game speed increases as your score goes up.
+    * **High Score:** Persists locally to challenge your friends.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🛠️ Architecture & Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+This project was architected to be lightweight, performant, and easily deployable.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+* **Core:** [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) (Strict typing for robustness).
+* **Build Tool:** [Vite](https://vitejs.dev/) (For instant HMR and optimized production builds).
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/) (Rapid UI prototyping).
+* **CI/CD:** **GitHub Actions** (Automated build and deployment pipeline to GitHub Pages).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🤖 The "Vibe Code" Stack
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+This project explores the future of coding by leveraging AI as a pair programmer.
+
+* **IDE:** Google Antigravity IDE
+* **Logic Engine:** Gemini 3 Pro (Generated game loop logic and state management).
+* **Asset Generation:** Nano Banana Model.
+
+## 🚀 Run Locally
+
+Want to see the code structure?
+
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/rafaljab/christmas-game.git](https://github.com/rafaljab/christmas-game.git)
+    ```
+2.  **Install dependencies:**
+    ```bash
+    cd christmas-game
+    npm install
+    ```
+3.  **Start the dev server:**
+    ```bash
+    npm run dev
+    ```
+
+---
+*Merry Christmas and Happy Coding! ❄️*
