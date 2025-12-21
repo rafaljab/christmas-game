@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { playSound, initAudio } from '../utils/SoundManager';
 
 export interface Position {
     x: number;
@@ -20,10 +21,10 @@ export interface GameState {
 }
 
 const CONSTANTS = {
-    SANTA_SPEED: 0.2,
-    ELF_SPEED: 0.5,
-    ITEM_DROP_RATE: 0.02, // Probability per frame (approx)
-    ITEM_SPEED: 0.3,
+    SANTA_SPEED: 0.1, // Reduced from 0.2
+    ELF_SPEED: 0.3,   // Reduced from 0.5
+    ITEM_DROP_RATE: 0.01, // Reduced from 0.02
+    ITEM_SPEED: 0.15, // Reduced from 0.3
     CANVAS_WIDTH: 800,
     CANVAS_HEIGHT: 600,
     SANTA_Y: 50,
@@ -45,6 +46,7 @@ export const useGameState = () => {
     // Input handling
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            initAudio();
             keysPressed.current[e.key] = true;
         };
 
@@ -65,19 +67,21 @@ export const useGameState = () => {
         if (gameState.gameOver) return;
 
         setGameState((prevState) => {
+            // Calculate difficulty multiplier based on score
+            // Starts at 1.0, adds 0.1 for every 50 points
+            const difficulty = 1 + Math.max(0, prevState.score) / 50 * 0.1;
+
             // 1. Move Santa
-            let newSantaX = prevState.santaPosition + Math.sin(Date.now() / 1000) * CONSTANTS.SANTA_SPEED * deltaTime;
+            // Apply difficulty to speed
+            let newSantaX = prevState.santaPosition + Math.sin(Date.now() / 1000) * (CONSTANTS.SANTA_SPEED * difficulty) * deltaTime;
             // Clamp Santa
             newSantaX = Math.max(0, Math.min(CONSTANTS.CANVAS_WIDTH - CONSTANTS.ENTITY_SIZE, newSantaX));
 
-            // Simple bounce movement logic (just oscillating for now, can be improved)
-            // Or just simply moving back and forth. Let's make it move randomly or oscillating.
-            // Using sin wave based on time is jerky if frames skip. 
-            // Better: store velocity in state. For simplicity, let's just make Santa move back and forth.
-            // But we can't store velocity in local var here.
-            // Let's just oscillate based on time for now as it's stateless. 
+            // Simple bounce movement logic
             const time = Date.now();
-            const santaPos = (Math.sin(time * 0.002) + 1) / 2 * (CONSTANTS.CANVAS_WIDTH - CONSTANTS.ENTITY_SIZE);
+            // Scale time by difficulty to make oscillation faster
+            const timeScale = 0.002 * difficulty;
+            const santaPos = (Math.sin(time * timeScale) + 1) / 2 * (CONSTANTS.CANVAS_WIDTH - CONSTANTS.ENTITY_SIZE);
 
 
             // 2. Move Elf
@@ -92,7 +96,8 @@ export const useGameState = () => {
 
             // 3. Spawning Items
             const newItems = [...prevState.items];
-            if (Math.random() < CONSTANTS.ITEM_DROP_RATE) {
+            // Spawn rate increases with difficulty
+            if (Math.random() < CONSTANTS.ITEM_DROP_RATE * difficulty) {
                 newItems.push({
                     id: Date.now() + Math.random(),
                     type: Math.random() > 0.3 ? 'present' : 'rod', // 70% presents
@@ -105,7 +110,8 @@ export const useGameState = () => {
             let isGameOver = false;
 
             const updatedItems = newItems.filter((item) => {
-                item.position.y += CONSTANTS.ITEM_SPEED * deltaTime;
+                // Item fall speed increases with difficulty
+                item.position.y += CONSTANTS.ITEM_SPEED * difficulty * deltaTime;
 
                 // Collision with Elf
                 const hitElf =
@@ -117,8 +123,10 @@ export const useGameState = () => {
                 if (hitElf) {
                     if (item.type === 'present') {
                         newScore += 10;
+                        playSound('score');
                     } else {
                         newScore -= 10;
+                        playSound('penalty');
                     }
                     return false; // Remove item
                 }
@@ -127,23 +135,9 @@ export const useGameState = () => {
                 return item.position.y < CONSTANTS.CANVAS_HEIGHT;
             });
 
-            if (newScore < 0) {
-                // Optional: Game Over if score < 0? 
-                // Re-reading requirements: just "Santa drops Rods -> -10 points".
-                // Mechanics usually imply a fail state, but user didn't specify one other than "Game Over screen". 
-                // Let's assume Game Over if score < -50 or maybe based on time? 
-                // User said "UI overlay (Score, Game Over screen)".
-                // Typically "catch bombs" games end on hitting a bomb or missing too many presents.
-                // Let's say Game Over if you hit 3 Rods? Or just score < 0? 
-                // For now let's just keep playing unless updated.
-                // Wait, user explicitly asked for "Game Over screen".
-                // I'll make it Game Over if you catch a Rod? No, that's -10 points.
-                // Maybe if score drops below 0? Or maybe a time limit?
-                // Let's assume "Game Over" occurs if score < 0 (and you started with 0?). 
-                // That would end the game immediately. 
-                // Let's add a "lives" system? N/A in requirements.
-                // Let's just create a manual "Stop" or "Game Over" trigger for now, or maybe make -100 score game over.
-                if (newScore <= -50) isGameOver = true;
+            if (newScore <= -50) {
+                if (!isGameOver) playSound('gameOver');
+                isGameOver = true;
             }
 
             return {
@@ -155,7 +149,7 @@ export const useGameState = () => {
                 gameOver: isGameOver,
             };
         });
-    }, [gameState.gameOver]); // Depend on gameOver to stop updating? NO, useGameLoop calls this.
+    }, [gameState.gameOver]);
 
     return {
         gameState,
