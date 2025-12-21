@@ -5,7 +5,7 @@
 
 Welcome to **Christmas Catch**, a festive experiment in **AI-Native Development**. This project demonstrates how modern tooling and generative AI can be combined to "vibe code" a production-ready web application in record time.
 
-![Christmas Catch Banner](https://placehold.co/600x400/1e293b/ef4444?text=Christmas+Catch)
+![Christmas Catch Banner](./christmas-catch-banner-640.png)
 
 ## 🌟 Live Demo
 
