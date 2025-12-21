@@ -77,9 +77,9 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         // Clear canvas (transparent)
         ctx.clearRect(0, 0, width, height);
 
-        // Draw Santa (1.5x larger)
+        // Draw Santa (2x larger)
         const santaPos = gameState.santaPosition;
-        const santaSize = entitySize * 1.5;
+        const santaSize = entitySize * 2;
         const santaOffset = (santaSize - entitySize) / 2;
 
         if (santa.current && santa.current.complete) {

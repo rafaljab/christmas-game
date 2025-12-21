@@ -9,13 +9,25 @@ function App() {
     update(deltaTime);
   });
 
+  // Helper to format time (ms -> MM:SS)
+  const formatTime = (ms: number) => {
+    const seconds = Math.floor(ms / 1000);
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="w-full min-h-screen bg-slate-900 bg-gradient-to-br from-slate-900 via-purple-950 to-black flex flex-col items-center justify-center font-sans text-center selection:bg-pink-500 selection:text-white py-4">
       {/* UI Overlay */}
-      <div className="absolute top-8 left-8">
+      <div className="absolute top-8 left-8 flex flex-col gap-2 items-start">
         <div className="glass-panel px-6 py-3 rounded-2xl border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)] backdrop-blur-md bg-white/5">
           <span className="text-slate-300 text-lg uppercase tracking-widest font-bold mr-2">Score</span>
           <span className={`text-3xl font-black drop-shadow-lg ${gameState.score >= 0 ? "text-green-400" : "text-red-400"}`}>{gameState.score}</span>
+        </div>
+        <div className="glass-panel px-4 py-2 rounded-xl border border-white/5 shadow-md backdrop-blur-sm bg-black/20">
+          <span className="text-slate-400 text-sm uppercase tracking-wider font-bold mr-2">Time</span>
+          <span className="text-xl font-mono text-cyan-300">{formatTime(gameState.timeAlive)}</span>
         </div>
       </div>
 
@@ -41,8 +53,11 @@ function App() {
           {gameState.gameOver && (
             <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm z-50 animate-fade-in">
               <h2 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-red-600 mb-2 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] tracking-tight">GAME OVER</h2>
-              <div className="text-white text-2xl mb-8 font-light tracking-wide">
+              <div className="text-white text-2xl mb-2 font-light tracking-wide">
                 Final Score: <span className="font-bold text-yellow-400">{gameState.score}</span>
+              </div>
+              <div className="text-slate-400 text-xl mb-8 font-light tracking-wide">
+                Time Alive: <span className="font-mono text-cyan-300">{formatTime(gameState.timeAlive)}</span>
               </div>
               <button
                 onClick={() => window.location.reload()}

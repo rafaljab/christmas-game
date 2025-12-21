@@ -18,6 +18,7 @@ export interface GameState {
     items: Item[];
     score: number;
     gameOver: boolean;
+    timeAlive: number;
 }
 
 const CONSTANTS = {
@@ -39,6 +40,7 @@ export const useGameState = () => {
         items: [],
         score: 0,
         gameOver: false,
+        timeAlive: 0,
     });
 
     const keysPressed = useRef<{ [key: string]: boolean }>({});
@@ -70,6 +72,9 @@ export const useGameState = () => {
         if (gameState.gameOver) return;
 
         setGameState((prevState) => {
+            // 0. Update Timer
+            const newTimeAlive = prevState.timeAlive + deltaTime;
+
             // Calculate difficulty multiplier based on score
             // Starts at 1.0, adds 0.1 for every 50 points
             const difficulty = 1 + Math.max(0, prevState.score) / 50 * 0.1;
@@ -99,11 +104,19 @@ export const useGameState = () => {
 
             // 3. Spawning Items
             const newItems = [...prevState.items];
+
+            // Dynamic Item Probabilities
+            // Base Rod Probability is 30%. Increases by 5% for every 1.0 difficulty increase (every 500 points)
+            // Cap at 60% rods maximum.
+            const baseRodProb = 0.3;
+            const difficultyFactor = (difficulty - 1) * 0.5; // +0.05 per 0.1 difficulty
+            const rodProbability = Math.min(0.6, baseRodProb + difficultyFactor);
+
             // Spawn rate increases with difficulty
             if (Math.random() < CONSTANTS.ITEM_DROP_RATE * difficulty) {
                 newItems.push({
                     id: Date.now() + Math.random(),
-                    type: Math.random() > 0.3 ? 'present' : 'rod', // 70% presents
+                    type: Math.random() > (1 - rodProbability) ? 'rod' : 'present', // Use calculated probability
                     position: { x: santaPos, y: CONSTANTS.SANTA_Y },
                 });
             }
@@ -150,6 +163,7 @@ export const useGameState = () => {
                 items: updatedItems,
                 score: newScore,
                 gameOver: isGameOver,
+                timeAlive: newTimeAlive,
             };
         });
     }, [gameState.gameOver]);
