@@ -70,6 +70,15 @@ function App() {
           <span className="text-slate-400 text-sm uppercase tracking-wider font-bold mr-2">Time</span>
           <span className="text-xl font-mono text-cyan-300">{formatTime(gameState.timeAlive)}</span>
         </div>
+        {/* Lives Display */}
+        <div className="glass-panel px-4 py-2 rounded-xl border border-white/5 shadow-md backdrop-blur-sm bg-black/20 flex items-center gap-1">
+          <span className="text-slate-400 text-sm uppercase tracking-wider font-bold mr-2">Lives</span>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <span key={i} className={`text-2xl transition-all ${i < gameState.lives ? 'opacity-100 scale-100' : 'opacity-20 scale-75 grayscale'}`}>
+              ❤️
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Game Title */}
@@ -111,6 +120,9 @@ function App() {
               <h2 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-red-600 mb-2 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] tracking-tight">GAME OVER</h2>
               <div className="text-white text-2xl mb-2 font-light tracking-wide">
                 Final Score: <span className="font-bold text-yellow-400">{gameState.score}</span>
+              </div>
+              <div className="text-red-400 text-xl mb-4 font-bold tracking-widest uppercase opacity-90">
+                You ran out of lives!
               </div>
               <div className="text-slate-400 text-xl mb-8 font-light tracking-wide">
                 Time Alive: <span className="font-mono text-cyan-300">{formatTime(gameState.timeAlive)}</span>

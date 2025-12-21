@@ -8,7 +8,7 @@ export interface Position {
 
 export interface Item {
     id: number;
-    type: 'present' | 'rod';
+    type: 'present' | 'rod' | 'grinch';
     position: Position;
 }
 
@@ -20,6 +20,7 @@ export interface GameState {
     gameOver: boolean;
     timeAlive: number;
     gameStarted: boolean;
+    lives: number;
 }
 
 const CONSTANTS = {
@@ -43,6 +44,7 @@ export const useGameState = () => {
         gameOver: false,
         timeAlive: 0,
         gameStarted: false,
+        lives: 3,
     });
 
     const keysPressed = useRef<{ [key: string]: boolean }>({});
@@ -77,6 +79,7 @@ export const useGameState = () => {
             gameOver: false,
             score: 0,
             timeAlive: 0,
+            lives: 3,
             items: [],
             santaPosition: CONSTANTS.CANVAS_WIDTH / 2,
             elfPosition: CONSTANTS.CANVAS_WIDTH / 2,
@@ -124,23 +127,37 @@ export const useGameState = () => {
             const newItems = [...prevState.items];
 
             // Dynamic Item Probabilities
-            // Base Rod Probability is 30%. Increases by 5% for every 1.0 difficulty increase (every 500 points)
+            // Base Rod Probability is 30%. Increases by 5% for every 1.0 difficulty increase (every 10s)
             // Cap at 60% rods maximum.
             const baseRodProb = 0.3;
-            const difficultyFactor = (difficulty - 1) * 0.5; // +0.05 per 0.1 difficulty
+            const difficultyFactor = (difficulty - 1) * 0.5;
             const rodProbability = Math.min(0.6, baseRodProb + difficultyFactor);
+
+            // Grinch Probability
+            // Starts very low (2%). Increases slightly with difficulty. Capped at 5%.
+            const grinchProbability = Math.min(0.05, 0.02 + (difficulty - 1) * 0.01);
 
             // Spawn rate increases with difficulty
             if (Math.random() < CONSTANTS.ITEM_DROP_RATE * difficulty) {
+                const rand = Math.random();
+                let type: Item['type'] = 'present';
+
+                if (rand < grinchProbability) {
+                    type = 'grinch';
+                } else if (rand < grinchProbability + rodProbability) {
+                    type = 'rod';
+                }
+
                 newItems.push({
                     id: Date.now() + Math.random(),
-                    type: Math.random() > (1 - rodProbability) ? 'rod' : 'present', // Use calculated probability
+                    type: type,
                     position: { x: santaPos, y: CONSTANTS.SANTA_Y },
                 });
             }
 
             // 4. Update Items & Collision
             let newScore = prevState.score;
+            let newLives = prevState.lives;
             let isGameOver = false;
 
             const updatedItems = newItems.filter((item) => {
@@ -158,9 +175,12 @@ export const useGameState = () => {
                     if (item.type === 'present') {
                         newScore += 10;
                         playSound('score');
-                    } else {
+                    } else if (item.type === 'rod') {
                         newScore -= 10;
                         playSound('penalty');
+                    } else if (item.type === 'grinch') {
+                        newLives -= 1;
+                        playSound('penalty'); // Or specific sound
                     }
                     return false; // Remove item
                 }
@@ -169,7 +189,7 @@ export const useGameState = () => {
                 return item.position.y < CONSTANTS.CANVAS_HEIGHT;
             });
 
-            if (newScore <= -50) {
+            if (newLives <= 0) {
                 if (!isGameOver) playSound('gameOver');
                 isGameOver = true;
             }
@@ -183,6 +203,7 @@ export const useGameState = () => {
                 gameOver: isGameOver,
                 timeAlive: newTimeAlive,
                 gameStarted: true,
+                lives: newLives,
             };
         });
     }, [gameState.gameOver, gameState.gameStarted]);
