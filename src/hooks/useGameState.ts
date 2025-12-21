@@ -47,6 +47,9 @@ export const useGameState = () => {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             initAudio();
+            if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+            }
             keysPressed.current[e.key] = true;
         };
 
