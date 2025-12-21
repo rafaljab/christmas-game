@@ -75,9 +75,10 @@ export const useGameState = () => {
             // 0. Update Timer
             const newTimeAlive = prevState.timeAlive + deltaTime;
 
-            // Calculate difficulty multiplier based on score
-            // Starts at 1.0, adds 0.1 for every 50 points
-            const difficulty = 1 + Math.max(0, prevState.score) / 50 * 0.1;
+            // Calculate difficulty multiplier based on Time Alive
+            // Starts at 1.0, adds 0.1 for every 10 seconds of survival
+            const secondsAlive = newTimeAlive / 1000;
+            const difficulty = 1 + (secondsAlive / 10) * 0.1;
 
             // 1. Move Santa
             // Apply difficulty to speed
@@ -86,7 +87,8 @@ export const useGameState = () => {
             newSantaX = Math.max(0, Math.min(CONSTANTS.CANVAS_WIDTH - CONSTANTS.ENTITY_SIZE, newSantaX));
 
             // Simple bounce movement logic
-            const time = Date.now();
+            // Use timeAlive instead of Date.now() to avoid massive phase jumps when difficulty changes
+            const time = newTimeAlive;
             // Scale time by difficulty to make oscillation faster
             const timeScale = 0.002 * difficulty;
             const santaPos = (Math.sin(time * timeScale) + 1) / 2 * (CONSTANTS.CANVAS_WIDTH - CONSTANTS.ENTITY_SIZE);
