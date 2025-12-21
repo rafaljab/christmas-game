@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { useGameLoop } from './hooks/useGameLoop';
 import { useGameState } from './hooks/useGameState';
 import { GameCanvas } from './components/GameCanvas';
+import { MobileWarning } from './components/MobileWarning';
+import { GameOverlay } from './components/GameOverlay';
+import { StartScreen } from './components/StartScreen';
+import { GameOverScreen } from './components/GameOverScreen';
+import { ControlsHint } from './components/ControlsHint';
 
 function App() {
   const { gameState, update, startGame, CONSTANTS } = useGameState();
@@ -9,14 +14,6 @@ function App() {
   useGameLoop((deltaTime: number) => {
     update(deltaTime);
   });
-
-  // Helper to format time (ms -> MM:SS)
-  const formatTime = (ms: number) => {
-    const seconds = Math.floor(ms / 1000);
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const [showMobileWarning, setShowMobileWarning] = useState(false);
 
@@ -36,52 +33,13 @@ function App() {
 
   return (
     <div className="w-full min-h-screen bg-slate-900 bg-gradient-to-br from-slate-900 via-purple-950 to-black flex flex-col items-center justify-center font-sans text-center selection:bg-pink-500 selection:text-white py-4">
-      {/* Mobile/Tablet Warning Modal */}
-      {showMobileWarning && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="max-w-md bg-slate-800 border border-white/10 rounded-2xl p-8 shadow-2xl text-center">
-            <div className="text-6xl mb-6">💻 + ⌨️</div>
-            <h2 className="text-3xl font-black text-amber-400 mb-4 drop-shadow-md">Desktop Required</h2>
-            <p className="text-slate-300 text-lg leading-relaxed mb-6">
-              <strong className="text-white block mb-2">Welcome to Christmas Catch! 🎄</strong>
-              This game requires a <span className="text-cyan-300 font-bold">Physical Keyboard</span> (Arrow Keys) and a larger screen for the best experience.
-            </p>
-            <p className="text-slate-400 text-sm mb-8 bg-black/20 p-3 rounded-lg">
-              Please open this page on a Desktop or Laptop computer.<br />
-              (Recommended Width: 1024px+)
-            </p>
-            <button
-              onClick={() => setShowMobileWarning(false)}
-              className="text-slate-500 hover:text-white text-xs underline transition-colors"
-            >
-              I understand, let me try anyway (Experience may be poor)
-            </button>
-          </div>
-        </div>
-      )}
+      <MobileWarning show={showMobileWarning} onClose={() => setShowMobileWarning(false)} />
 
-      {/* UI Overlay */}
-      <div className="absolute top-8 left-8 flex flex-col gap-2 items-start">
-        {/* Score Display */}
-        <div className="glass-panel px-4 py-2 rounded-xl border border-white/5 shadow-md backdrop-blur-sm bg-black/20 flex items-center">
-          <span className="text-slate-400 text-sm uppercase tracking-wider font-bold mr-2">Score</span>
-          <span className={`text-xl font-black drop-shadow-md ${gameState.score >= 0 ? "text-green-400" : "text-red-400"}`}>{gameState.score}</span>
-        </div>
-        {/* Time Display */}
-        <div className="glass-panel px-4 py-2 rounded-xl border border-white/5 shadow-md backdrop-blur-sm bg-black/20 flex items-center">
-          <span className="text-slate-400 text-sm uppercase tracking-wider font-bold mr-2">Time</span>
-          <span className="text-xl font-mono text-cyan-300">{formatTime(gameState.timeAlive)}</span>
-        </div>
-        {/* Lives Display */}
-        <div className="glass-panel px-4 py-2 rounded-xl border border-white/5 shadow-md backdrop-blur-sm bg-black/20 flex items-center gap-1">
-          <span className="text-slate-400 text-sm uppercase tracking-wider font-bold mr-2">Lives</span>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <span key={i} className={`text-2xl transition-all ${i < gameState.lives ? 'opacity-100 scale-100' : 'opacity-20 scale-75 grayscale'}`}>
-              ❤️
-            </span>
-          ))}
-        </div>
-      </div>
+      <GameOverlay
+        score={gameState.score}
+        timeAlive={gameState.timeAlive}
+        lives={gameState.lives}
+      />
 
       {/* Game Title */}
       <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-600 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] mb-4 tracking-tight rotate-[-2deg] hover:rotate-2 transition-transform cursor-default">
@@ -101,72 +59,24 @@ function App() {
             entitySize={CONSTANTS.ENTITY_SIZE}
           />
 
-          {/* Start Game Screen */}
           {!gameState.gameStarted && !gameState.gameOver && (
-            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center backdrop-blur-sm z-50 animate-fade-in">
-              <h2 className="text-6xl font-black text-white mb-6 drop-shadow-lg tracking-tight">Ready? 🎅</h2>
-              <button
-                onClick={startGame}
-                className="group relative px-10 py-5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-full text-2xl transition-all shadow-[0_4px_0_rgb(185,28,28)] hover:shadow-[0_2px_0_rgb(185,28,28)] active:shadow-none translate-y-0 hover:translate-y-[2px] active:translate-y-[4px] animate-bounce-slow"
-              >
-                <span className="flex items-center gap-3">
-                  Start Game 🎁
-                </span>
-              </button>
-
-              {/* Legend */}
-              <div className="mt-12 flex gap-8 text-center bg-black/40 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
-                <div className="flex flex-col items-center gap-2 group cursor-help transition-transform hover:scale-110">
-                  <img src="/christmas-game/assets/present.png" alt="Present" className="w-12 h-12 image-pixelated drop-shadow-md" />
-                  <span className="text-green-400 font-bold text-sm text-shadow">+10 Pts</span>
-                </div>
-                <div className="flex flex-col items-center gap-2 group cursor-help transition-transform hover:scale-110">
-                  <img src="/christmas-game/assets/rod.png" alt="Coal" className="w-12 h-12 image-pixelated drop-shadow-md" />
-                  <span className="text-slate-400 font-bold text-sm text-shadow">-10 Pts</span>
-                </div>
-                <div className="flex flex-col items-center gap-2 group cursor-help transition-transform hover:scale-110">
-                  <img src="/christmas-game/assets/grinch.png" alt="Grinch" className="w-12 h-12 image-pixelated drop-shadow-lg animate-pulse" />
-                  <span className="text-red-500 font-bold text-sm text-shadow">-1 Life!</span>
-                </div>
-              </div>
-            </div>
+            <StartScreen onStart={startGame} />
           )}
 
-          {/* Game Over Overlay */}
           {gameState.gameOver && (
-            <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm z-50 animate-fade-in">
-              <h2 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-red-600 mb-2 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] tracking-tight">GAME OVER</h2>
-              <div className="text-white text-2xl mb-2 font-light tracking-wide">
-                Final Score: <span className="font-bold text-yellow-400">{gameState.score}</span>
-              </div>
-              <div className="text-red-400 text-xl mb-4 font-bold tracking-widest uppercase opacity-90">
-                You ran out of lives!
-              </div>
-              <div className="text-slate-400 text-xl mb-8 font-light tracking-wide">
-                Time Alive: <span className="font-mono text-cyan-300">{formatTime(gameState.timeAlive)}</span>
-              </div>
-              <button
-                onClick={startGame}
-                className="group relative px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-full text-xl transition-all shadow-[0_4px_0_rgb(21,128,61)] hover:shadow-[0_2px_0_rgb(21,128,61)] active:shadow-none translate-y-0 hover:translate-y-[2px] active:translate-y-[4px]"
-              >
-                <span className="flex items-center gap-2">
-                  Play Again 🔄
-                </span>
-              </button>
-            </div>
+            <GameOverScreen
+              score={gameState.score}
+              timeAlive={gameState.timeAlive}
+              onRestart={startGame}
+            />
           )}
         </div>
       </div>
 
-      <div className="mt-4 text-slate-300 text-base font-medium tracking-wide bg-slate-800/50 px-6 py-2 rounded-full backdrop-blur-sm border border-white/10 shadow-lg">
-        Use <kbd className="mx-1 px-2 py-0.5 bg-slate-700 text-white rounded text-sm font-sans font-bold shadow-sm border-b-2 border-slate-900">←</kbd> <kbd className="mx-1 px-2 py-0.5 bg-slate-700 text-white rounded text-sm font-sans font-bold shadow-sm border-b-2 border-slate-900">→</kbd> to guide the Elf.
-      </div>
-
-      <div className="mt-4 text-slate-500 text-sm font-light tracking-wider opacity-75 hover:opacity-100 transition-opacity select-none">
-        (Press <kbd className="font-sans font-bold text-slate-400">F11</kbd> for the best experience ❄️)
-      </div>
+      <ControlsHint />
     </div>
   );
 }
 
 export default App;
+
