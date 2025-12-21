@@ -19,6 +19,54 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     entitySize,
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const santa = useRef<HTMLImageElement | null>(null);
+    const elf = useRef<HTMLImageElement | null>(null);
+    const present = useRef<HTMLImageElement | null>(null);
+    const rod = useRef<HTMLImageElement | null>(null);
+
+    // Load Sprites with Chroma Key
+    useEffect(() => {
+        const processImage = (src: string, ref: React.MutableRefObject<HTMLImageElement | null>) => {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => {
+                // Create a temporary canvas to process the image
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = img.width;
+                tempCanvas.height = img.height;
+                const ctx = tempCanvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0);
+                    const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                    const data = imageData.data;
+
+                    // Simple Chroma Key: Remove Magenta (R>200, G<50, B>200)
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+
+                        // Check for Magenta-ish color
+                        if (r > 200 && g < 100 && b > 200) {
+                            data[i + 3] = 0; // Set Alpha to 0
+                        }
+                    }
+
+                    ctx.putImageData(imageData, 0, 0);
+
+                    // Create a new image from the processed canvas
+                    const processedImg = new Image();
+                    processedImg.src = tempCanvas.toDataURL();
+                    ref.current = processedImg;
+                }
+            };
+        };
+
+        processImage('/assets/santa.png', santa);
+        processImage('/assets/elf.png', elf);
+        processImage('/assets/present.png', present);
+        processImage('/assets/rod.png', rod);
+    }, []);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -26,32 +74,27 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Clear canvas
+        // Clear canvas (transparent)
         ctx.clearRect(0, 0, width, height);
 
-        // Draw Background (Sky)
-        ctx.fillStyle = '#1e293b'; // Slate 800
-        ctx.fillRect(0, 0, width, height);
-
         // Draw Santa
-        ctx.fillStyle = '#ef4444'; // Red 500
-        ctx.fillRect(gameState.santaPosition, santaY, entitySize, entitySize);
-        // Santa Eyes
-        ctx.fillStyle = 'white';
-        ctx.fillRect(gameState.santaPosition + 5, santaY + 10, 10, 10);
-        ctx.fillRect(gameState.santaPosition + 25, santaY + 10, 10, 10);
-
+        const santaPos = gameState.santaPosition;
+        if (santa.current && santa.current.complete) {
+            ctx.drawImage(santa.current, santaPos, santaY, entitySize, entitySize);
+        } else {
+            // Fallback
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(santaPos, santaY, entitySize, entitySize);
+        }
 
         // Draw Elf
-        ctx.fillStyle = '#22c55e'; // Green 500
-        ctx.fillRect(gameState.elfPosition, elfY, entitySize, entitySize);
-        // Elf Hat
-        ctx.beginPath();
-        ctx.moveTo(gameState.elfPosition, elfY);
-        ctx.lineTo(gameState.elfPosition + entitySize / 2, elfY - 20);
-        ctx.lineTo(gameState.elfPosition + entitySize, elfY);
-        ctx.fillStyle = '#22c55e'; // Green 500
-        ctx.fill();
+        const elfPos = gameState.elfPosition;
+        if (elf.current && elf.current.complete) {
+            ctx.drawImage(elf.current, elfPos, elfY, entitySize, entitySize);
+        } else {
+            ctx.fillStyle = '#22c55e';
+            ctx.fillRect(elfPos, elfY, entitySize, entitySize);
+        }
 
         // Draw Items - Draw Presents first, then Rods to keep Rods in foreground
         const presents = gameState.items.filter(i => i.type === 'present');
@@ -59,19 +102,22 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
         // Draw Presents
         presents.forEach((item: Item) => {
-            ctx.fillStyle = '#eab308'; // Yellow 500 (Gold)
-            // Draw Gift Box
-            ctx.fillRect(item.position.x, item.position.y, entitySize, entitySize);
-            // Ribbon
-            ctx.fillStyle = '#ef4444'; // Red
-            ctx.fillRect(item.position.x + entitySize / 2 - 5, item.position.y, 10, entitySize);
-            ctx.fillRect(item.position.x, item.position.y + entitySize / 2 - 5, entitySize, 10);
+            if (present.current && present.current.complete) {
+                ctx.drawImage(present.current, item.position.x, item.position.y, entitySize, entitySize);
+            } else {
+                ctx.fillStyle = '#eab308';
+                ctx.fillRect(item.position.x, item.position.y, entitySize, entitySize);
+            }
         });
 
         // Draw Rods
         rods.forEach((item: Item) => {
-            ctx.fillStyle = '#9ca3af'; // Gray 400 (Rod)
-            ctx.fillRect(item.position.x + 15, item.position.y, 10, entitySize);
+            if (rod.current && rod.current.complete) {
+                ctx.drawImage(rod.current, item.position.x, item.position.y, entitySize, entitySize);
+            } else {
+                ctx.fillStyle = '#9ca3af';
+                ctx.fillRect(item.position.x + 15, item.position.y, 10, entitySize);
+            }
         });
 
     }, [gameState, width, height, santaY, elfY, entitySize]);
