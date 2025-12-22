@@ -10,6 +10,7 @@ export interface Item {
     id: number;
     type: 'present' | 'rod' | 'grinch';
     position: Position;
+    speedMultiplier: number;
 }
 
 export interface GameState {
@@ -21,6 +22,7 @@ export interface GameState {
     timeAlive: number;
     gameStarted: boolean;
     lives: number;
+    isPaused: boolean;
 }
 
 const CONSTANTS = {
@@ -45,6 +47,7 @@ export const useGameState = () => {
         timeAlive: 0,
         gameStarted: false,
         lives: 3,
+        isPaused: false,
     });
 
     const keysPressed = useRef<{ [key: string]: boolean }>({});
@@ -55,6 +58,12 @@ export const useGameState = () => {
             initAudio();
             if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
                 e.preventDefault();
+            }
+            if (e.key === 'Escape') {
+                setGameState(prev => {
+                    if (!prev.gameStarted || prev.gameOver) return prev;
+                    return { ...prev, isPaused: !prev.isPaused };
+                });
             }
             keysPressed.current[e.key] = true;
         };
@@ -72,6 +81,13 @@ export const useGameState = () => {
         };
     }, []);
 
+    const togglePause = useCallback(() => {
+        setGameState(prev => {
+            if (!prev.gameStarted || prev.gameOver) return prev;
+            return { ...prev, isPaused: !prev.isPaused };
+        });
+    }, []);
+
     const startGame = useCallback(() => {
         setGameState(prev => ({
             ...prev,
@@ -83,12 +99,13 @@ export const useGameState = () => {
             items: [],
             santaPosition: CONSTANTS.CANVAS_WIDTH / 2,
             elfPosition: CONSTANTS.CANVAS_WIDTH / 2,
+            isPaused: false,
         }));
         initAudio(); // Ensure audio context is ready
     }, []);
 
     const update = useCallback((deltaTime: number) => {
-        if (gameState.gameOver || !gameState.gameStarted) return;
+        if (gameState.gameOver || !gameState.gameStarted || gameState.isPaused) return;
 
         setGameState((prevState) => {
             // 0. Update Timer
@@ -134,11 +151,11 @@ export const useGameState = () => {
 
             // Dynamic Item Probabilities
             // Base Rod Probability is 30%. Increases by 5% for every 1.0 difficulty increase (every 10s)
-            // Cap at 60% rods maximum.
+            // Cap at 50% rods maximum.
             const baseRodProb = 0.3;
             // Use SPAWN difficulty for item types
             const difficultyFactor = (spawnDifficulty - 1) * 0.5;
-            const rodProbability = Math.min(0.6, baseRodProb + difficultyFactor);
+            const rodProbability = Math.min(0.5, baseRodProb + difficultyFactor);
 
             // Grinch Probability
             // Starts at 2%. scales up to 20% max.
@@ -156,10 +173,15 @@ export const useGameState = () => {
                     type = 'rod';
                 }
 
+                let speedMultiplier = 1.0;
+                if (type === 'rod') speedMultiplier = 1.2;
+                if (type === 'grinch') speedMultiplier = 1.4;
+
                 newItems.push({
                     id: Date.now() + Math.random(),
                     type: type,
                     position: { x: santaPos, y: CONSTANTS.SANTA_Y },
+                    speedMultiplier,
                 });
             }
 
@@ -170,7 +192,7 @@ export const useGameState = () => {
 
             const updatedItems = newItems.filter((item) => {
                 // Item fall speed increases with difficulty
-                item.position.y += CONSTANTS.ITEM_SPEED * spawnDifficulty * deltaTime;
+                item.position.y += CONSTANTS.ITEM_SPEED * item.speedMultiplier * spawnDifficulty * deltaTime;
 
                 // Collision with Elf
                 const hitElf =
@@ -214,12 +236,13 @@ export const useGameState = () => {
                 lives: newLives,
             };
         });
-    }, [gameState.gameOver, gameState.gameStarted]);
+    }, [gameState.gameOver, gameState.gameStarted, gameState.isPaused]);
 
     return {
         gameState,
         update,
         startGame,
+        togglePause,
         CONSTANTS
     };
 };

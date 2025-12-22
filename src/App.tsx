@@ -4,12 +4,13 @@ import { useGameState } from './hooks/useGameState';
 import { GameCanvas } from './components/GameCanvas';
 import { MobileWarning } from './components/MobileWarning';
 import { GameOverlay } from './components/GameOverlay';
+import { PauseScreen } from './components/PauseScreen';
 import { StartScreen } from './components/StartScreen';
 import { GameOverScreen } from './components/GameOverScreen';
 import { ControlsHint } from './components/ControlsHint';
 
 function App() {
-  const { gameState, update, startGame, CONSTANTS } = useGameState();
+  const { gameState, update, startGame, togglePause, CONSTANTS } = useGameState();
 
   useGameLoop((deltaTime: number) => {
     update(deltaTime);
@@ -61,6 +62,10 @@ function App() {
 
           {!gameState.gameStarted && !gameState.gameOver && (
             <StartScreen onStart={startGame} />
+          )}
+
+          {gameState.isPaused && (
+            <PauseScreen onResume={togglePause} />
           )}
 
           {gameState.gameOver && (
