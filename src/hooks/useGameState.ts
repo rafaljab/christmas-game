@@ -10,6 +10,7 @@ export interface Item {
     id: number;
     type: 'present' | 'rod' | 'grinch';
     position: Position;
+    speedMultiplier: number;
 }
 
 export interface GameState {
@@ -134,11 +135,11 @@ export const useGameState = () => {
 
             // Dynamic Item Probabilities
             // Base Rod Probability is 30%. Increases by 5% for every 1.0 difficulty increase (every 10s)
-            // Cap at 60% rods maximum.
+            // Cap at 50% rods maximum.
             const baseRodProb = 0.3;
             // Use SPAWN difficulty for item types
             const difficultyFactor = (spawnDifficulty - 1) * 0.5;
-            const rodProbability = Math.min(0.6, baseRodProb + difficultyFactor);
+            const rodProbability = Math.min(0.5, baseRodProb + difficultyFactor);
 
             // Grinch Probability
             // Starts at 2%. scales up to 20% max.
@@ -156,10 +157,15 @@ export const useGameState = () => {
                     type = 'rod';
                 }
 
+                let speedMultiplier = 1.0;
+                if (type === 'rod') speedMultiplier = 1.2;
+                if (type === 'grinch') speedMultiplier = 1.4;
+
                 newItems.push({
                     id: Date.now() + Math.random(),
                     type: type,
                     position: { x: santaPos, y: CONSTANTS.SANTA_Y },
+                    speedMultiplier,
                 });
             }
 
@@ -170,7 +176,7 @@ export const useGameState = () => {
 
             const updatedItems = newItems.filter((item) => {
                 // Item fall speed increases with difficulty
-                item.position.y += CONSTANTS.ITEM_SPEED * spawnDifficulty * deltaTime;
+                item.position.y += CONSTANTS.ITEM_SPEED * item.speedMultiplier * spawnDifficulty * deltaTime;
 
                 // Collision with Elf
                 const hitElf =
