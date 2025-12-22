@@ -22,6 +22,7 @@ export interface GameState {
     timeAlive: number;
     gameStarted: boolean;
     lives: number;
+    isPaused: boolean;
 }
 
 const CONSTANTS = {
@@ -46,6 +47,7 @@ export const useGameState = () => {
         timeAlive: 0,
         gameStarted: false,
         lives: 3,
+        isPaused: false,
     });
 
     const keysPressed = useRef<{ [key: string]: boolean }>({});
@@ -56,6 +58,12 @@ export const useGameState = () => {
             initAudio();
             if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
                 e.preventDefault();
+            }
+            if (e.key === 'Escape') {
+                setGameState(prev => {
+                    if (!prev.gameStarted || prev.gameOver) return prev;
+                    return { ...prev, isPaused: !prev.isPaused };
+                });
             }
             keysPressed.current[e.key] = true;
         };
@@ -73,6 +81,13 @@ export const useGameState = () => {
         };
     }, []);
 
+    const togglePause = useCallback(() => {
+        setGameState(prev => {
+            if (!prev.gameStarted || prev.gameOver) return prev;
+            return { ...prev, isPaused: !prev.isPaused };
+        });
+    }, []);
+
     const startGame = useCallback(() => {
         setGameState(prev => ({
             ...prev,
@@ -84,12 +99,13 @@ export const useGameState = () => {
             items: [],
             santaPosition: CONSTANTS.CANVAS_WIDTH / 2,
             elfPosition: CONSTANTS.CANVAS_WIDTH / 2,
+            isPaused: false,
         }));
         initAudio(); // Ensure audio context is ready
     }, []);
 
     const update = useCallback((deltaTime: number) => {
-        if (gameState.gameOver || !gameState.gameStarted) return;
+        if (gameState.gameOver || !gameState.gameStarted || gameState.isPaused) return;
 
         setGameState((prevState) => {
             // 0. Update Timer
@@ -220,12 +236,13 @@ export const useGameState = () => {
                 lives: newLives,
             };
         });
-    }, [gameState.gameOver, gameState.gameStarted]);
+    }, [gameState.gameOver, gameState.gameStarted, gameState.isPaused]);
 
     return {
         gameState,
         update,
         startGame,
+        togglePause,
         CONSTANTS
     };
 };
