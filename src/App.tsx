@@ -8,6 +8,7 @@ import { PauseScreen } from './components/PauseScreen';
 import { StartScreen } from './components/StartScreen';
 import { GameOverScreen } from './components/GameOverScreen';
 import { ControlsHint } from './components/ControlsHint';
+import { GithubLink } from './components/GithubLink';
 
 function App() {
   const { gameState, update, startGame, togglePause, CONSTANTS } = useGameState();
@@ -79,6 +80,8 @@ function App() {
       </div>
 
       <ControlsHint />
+
+      <GithubLink />
     </div>
   );
 }
